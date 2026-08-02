@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+// @ts-ignore: allow CSS side-effect import without type declarations
 import './Budget.css'
 
 const API_BASE = 'http://localhost:3000'

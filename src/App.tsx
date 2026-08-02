@@ -1,23 +1,14 @@
-import { useEffect, useState } from 'react'
-import Sidebar from './components/Sidebar'
-import Budget from './pages/Budget'
+import React from 'react';
+import Sidebar from './Sidebar';
+import Dashboard from './Dashboard';
 
 function App() {
-  const [masterFundBalance, setMasterFundBalance] = useState<number | null>(null)
-
-  useEffect(() => {
-    fetch('http://localhost:3000/master-fund')
-      .then((res) => res.json())
-      .then((data) => setMasterFundBalance(data.balance))
-      .catch(() => setMasterFundBalance(null))
-  }, [])
-
   return (
-    <>
-      <Sidebar active="Budget" masterFundBalance={masterFundBalance} />
-      <Budget />
-    </>
-  )
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
+      <Sidebar />
+      <Dashboard />
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import NewQuote from './components/NewQuote';
+import { VendorQuote } from './VendorQuotes';
 
 interface DashboardProps {
-    onQuoteSubmitted: () => void;
+    onQuoteSubmitted: (quote: VendorQuote) => void;
 }
 
 const Dashboard = ({ onQuoteSubmitted }: DashboardProps) => {
@@ -45,9 +46,9 @@ const Dashboard = ({ onQuoteSubmitted }: DashboardProps) => {
             {showNewQuote && (
                 <NewQuote
                     onClose={() => setShowNewQuote(false)}
-                    onSubmitted={() => {
+                    onSubmitted={(quote) => {
                         setShowNewQuote(false);
-                        onQuoteSubmitted();
+                        onQuoteSubmitted(quote);
                     }}
                 />
             )}

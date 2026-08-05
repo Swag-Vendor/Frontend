@@ -1,6 +1,14 @@
-import React from 'react';
+import { useState } from 'react';
+import NewQuote from './components/NewQuote';
+import { VendorQuote } from './VendorQuotes';
 
-const Dashboard = () => {
+interface DashboardProps {
+    onQuoteSubmitted: (quote: VendorQuote) => void;
+}
+
+const Dashboard = ({ onQuoteSubmitted }: DashboardProps) => {
+    const [showNewQuote, setShowNewQuote] = useState(false);
+
     return (
         <main style={{ flex: 1, padding: '24px', fontFamily: 'monospace'}}>
             {/* Header */}
@@ -10,8 +18,12 @@ const Dashboard = () => {
                     <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '13px'}}>Track vendor quotes and swag spending</p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={{ padding: '8px 16px', borderRadius: '6px', border: '2px solid #d1d5db', fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', backgroundColor: 'white' }}>Export Quote</button>
-                    <button style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#4A9EE8', color: 'white' }}>New Quote</button>
+                    <button
+                        onClick={() => setShowNewQuote(true)}
+                        style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#4A9EE8', color: 'white' }}
+                    >
+                        New Quote
+                    </button>
                 </div>
             </div>
 
@@ -30,6 +42,16 @@ const Dashboard = () => {
                     </div>
                 ))}
             </div>
+
+            {showNewQuote && (
+                <NewQuote
+                    onClose={() => setShowNewQuote(false)}
+                    onSubmitted={(quote) => {
+                        setShowNewQuote(false);
+                        onQuoteSubmitted(quote);
+                    }}
+                />
+            )}
         </main>
     );
 };

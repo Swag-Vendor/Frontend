@@ -1,5 +1,6 @@
-const NAV_ITEMS = ['Dashboard', 'VendorQuotes', 'Budget']
 import './Sidebar.css'
+
+const NAV_ITEMS = ['Dashboard', 'VendorQuotes', 'Budget', 'Settings']
 
 interface SidebarProps {
   active: string

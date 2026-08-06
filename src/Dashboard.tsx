@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NewQuote from './components/NewQuote';
-import { VendorQuote } from './VendorQuotes';
 
-interface DashboardProps {
-    onQuoteSubmitted: (quote: VendorQuote) => void;
-}
-
-const Dashboard = ({ onQuoteSubmitted }: DashboardProps) => {
+const Dashboard = () => {
     const [showNewQuote, setShowNewQuote] = useState(false);
     const navigate = useNavigate();
 
@@ -48,9 +43,8 @@ const Dashboard = ({ onQuoteSubmitted }: DashboardProps) => {
             {showNewQuote && (
                 <NewQuote
                     onClose={() => setShowNewQuote(false)}
-                    onSubmitted={(quote) => {
+                    onSubmitted={() => {
                         setShowNewQuote(false);
-                        onQuoteSubmitted(quote);
                         navigate('/VendorQuotes');
                     }}
                 />

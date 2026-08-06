@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DeleteQuote from './components/DeleteQuote';
 import NewQuote from './components/NewQuote';
 
 const Dashboard = () => {
     const [showNewQuote, setShowNewQuote] = useState(false);
+    const [showDeleteQuote, setShowDeleteQuote] = useState(false);
     const navigate = useNavigate();
 
     return (
@@ -20,6 +22,12 @@ const Dashboard = () => {
                         style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', backgroundColor: '#4A9EE8', color: 'white' }}
                     >
                         New Quote
+                    </button>
+                    <button
+                        onClick={() => setShowDeleteQuote(true)}
+                        style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #b91c1c', fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', backgroundColor: 'white', color: '#b91c1c' }}
+                    >
+                        Delete Quote
                     </button>
                 </div>
             </div>
@@ -45,6 +53,16 @@ const Dashboard = () => {
                     onClose={() => setShowNewQuote(false)}
                     onSubmitted={() => {
                         setShowNewQuote(false);
+                        navigate('/VendorQuotes');
+                    }}
+                />
+            )}
+
+            {showDeleteQuote && (
+                <DeleteQuote
+                    onClose={() => setShowDeleteQuote(false)}
+                    onDeleted={() => {
+                        setShowDeleteQuote(false);
                         navigate('/VendorQuotes');
                     }}
                 />

@@ -1,27 +1,28 @@
 import { useState } from 'react';
-import Sidebar from './Sidebar';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Navbar from './components/Sidebar';
 import Dashboard from './Dashboard';
 import VendorQuotes, { VendorQuote } from './VendorQuotes';
-
-type Page = 'dashboard' | 'vendorQuotes';
+import Budget from './pages/Budget';
 
 function App() {
-  const [page, setPage] = useState<Page>('dashboard');
   const [quotes, setQuotes] = useState<VendorQuote[]>([]);
 
   const handleQuoteSubmitted = (quote: VendorQuote) => {
     setQuotes((currentQuotes) => [quote, ...currentQuotes]);
-    setPage('vendorQuotes');
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
-      <Sidebar activeItem={page === 'dashboard' ? 'Dashboard' : 'VendorQuotes'} />
-      {page === 'dashboard' ? (
-        <Dashboard onQuoteSubmitted={handleQuoteSubmitted} />
-      ) : (
-        <VendorQuotes quotes={quotes} />
-      )}
+    <div>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard onQuoteSubmitted={handleQuoteSubmitted} />} />
+          <Route path="/VendorQuotes" element={<VendorQuotes quotes={quotes} />} />
+          <Route path="/Budget" element={<Budget />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }

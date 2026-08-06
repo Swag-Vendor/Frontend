@@ -1,41 +1,25 @@
+// @ts-ignore: allow CSS side-effect import without type declarations
 import './Sidebar.css'
+import { Link } from "react-router-dom";
 
-const NAV_ITEMS = ['Dashboard', 'VendorQuotes', 'Budget', 'Settings']
+export default function Navbar() {
 
-interface SidebarProps {
-  active: string
-  masterFundBalance: number | null
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-}
-
-function Sidebar({ active, masterFundBalance }: SidebarProps) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">SwagLab</div>
-
-      <nav className="sidebar-nav">
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item}
-            href="#"
-            className={item === active ? 'sidebar-nav-item active' : 'sidebar-nav-item'}
-          >
-            {item}
-          </a>
-        ))}
+    <div>
+        <nav className="navbar">
+          <div className="navbar-links">
+            <Link to="/" className="navbar-link">
+              Dashboard
+            </Link>
+            <Link to="/VendorQuotes" className="navbar-link">
+              Vendor Quotes
+            </Link>
+            <Link to="/Budget" className="navbar-link">
+              Budget
+            </Link>
+          </div>
       </nav>
-
-      <div className="sidebar-fund-badge">
-        <span className="sidebar-fund-label">Masterfund</span>
-        <span className="sidebar-fund-value">
-          {masterFundBalance === null ? '...' : formatCurrency(masterFundBalance)}
-        </span>
-      </div>
-    </aside>
-  )
+    
+    </div>
+  );
 }
-
-export default Sidebar

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 // @ts-ignore: allow CSS side-effect import without type declarations
 import './DeleteQuote.css';
-
-const API_BASE = 'http://localhost:3000';
+import { API_BASE } from '../config';
+import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../auth/authFetch';
 
 interface Quote {
     id: number;
@@ -22,11 +23,17 @@ const DeleteQuote = ({ onClose, onDeleted }: DeleteQuoteProps) => {
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState('');
+    const { token, logout } = useAuth();
 
     useEffect(() => {
+        if (!token) return;
         const loadQuotes = async () => {
             try {
-                const response = await fetch(`${API_BASE}/quotes`);
+                const response = await authFetch(`${API_BASE}/quotes`, token);
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
                 if (!response.ok) throw new Error('Failed to load quotes');
                 setQuotes(await response.json());
             } catch {
@@ -37,10 +44,11 @@ const DeleteQuote = ({ onClose, onDeleted }: DeleteQuoteProps) => {
         };
 
         loadQuotes();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
 
     const handleDelete = async () => {
-        if (!selectedQuoteId) {
+        if (!selectedQuoteId || !token) {
             setError('Select a quote to delete.');
             return;
         }
@@ -49,7 +57,11 @@ const DeleteQuote = ({ onClose, onDeleted }: DeleteQuoteProps) => {
         setError('');
 
         try {
-            const response = await fetch(`${API_BASE}/quotes/${selectedQuoteId}`, { method: 'DELETE' });
+            const response = await authFetch(`${API_BASE}/quotes/${selectedQuoteId}`, token, { method: 'DELETE' });
+            if (response.status === 401) {
+                logout();
+                return;
+            }
             if (!response.ok) throw new Error('Failed to delete quote');
             onDeleted();
         } catch {

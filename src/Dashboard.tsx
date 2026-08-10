@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeleteQuote from './components/DeleteQuote';
 import NewQuote from './components/NewQuote';
+import VendorQuotesPreview from './components/VendorQuotesPreview';
 
 const Dashboard = () => {
     const [showNewQuote, setShowNewQuote] = useState(false);
@@ -48,6 +49,8 @@ const Dashboard = () => {
                 ))}
             </div>
 
+            <VendorQuotesPreview />
+            
             {showNewQuote && (
                 <NewQuote
                     onClose={() => setShowNewQuote(false)}

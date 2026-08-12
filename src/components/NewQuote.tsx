@@ -1,11 +1,13 @@
 import { FormEvent, useState } from 'react';
-import { VendorQuote } from '../VendorQuotes';
 // @ts-ignore: allow CSS side-effect import without type declarations
 import './NewQuote.css';
+import { API_BASE } from '../config';
+import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../auth/authFetch';
 
 interface NewQuoteProps {
     onClose: () => void;
-    onSubmitted: (quote: VendorQuote) => void;
+    onSubmitted: () => void;
 }
 
 const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
@@ -15,20 +17,52 @@ const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
     const [itemQuantity, setItemQuantity] = useState('');
     const [itemDescription, setItemDescription] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const { token, logout } = useAuth();
 
-    const handleSubmit = (event: FormEvent) => {
+    const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
+        if (!token) return;
         setSubmitting(true);
+        setError('');
 
-        onSubmitted({
-            id: crypto.randomUUID(),
-            vendorName: vendorName.trim(),
-            itemName: itemName.trim(),
-            quoteAmount: Number(quoteAmount),
-            itemQuantity: Number(itemQuantity),
-            itemDescription: itemDescription.trim(),
-            submittedAt: new Date().toISOString(),
-        });
+        try {
+            const itemRes = await authFetch(`${API_BASE}/swag-items`, token, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: itemName.trim(),
+                    description: itemDescription.trim(),
+                    quantity: Number(itemQuantity),
+                }),
+            });
+            if (itemRes.status === 401) {
+                logout();
+                return;
+            }
+            if (!itemRes.ok) throw new Error('Failed to create item');
+            const item = await itemRes.json();
+
+            const quoteRes = await authFetch(`${API_BASE}/quotes`, token, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    vendorName: vendorName.trim(),
+                    unitPrice: Number(quoteAmount),
+                    swagItemId: item.id,
+                }),
+            });
+            if (quoteRes.status === 401) {
+                logout();
+                return;
+            }
+            if (!quoteRes.ok) throw new Error('Failed to create quote');
+
+            onSubmitted();
+        } catch (err) {
+            setError('Something went wrong submitting the quote. Please try again.');
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -47,6 +81,7 @@ const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
                         <label>Quantity<input type="number" min="1" step="1" value={itemQuantity} onChange={(event) => setItemQuantity(event.target.value)} required /></label>
                     </div>
                     <label>Item Description<textarea value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} rows={3} /></label>
+                    {error && <p className="new-quote-error">{error}</p>}
                     <div className="new-quote-actions">
                         <button type="button" className="btn btn-outline" onClick={onClose} disabled={submitting}>Cancel</button>
                         <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit Vendor Quote'}</button>

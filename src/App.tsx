@@ -1,69 +1,27 @@
-import { useState } from 'react';
-
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-
-import Sidebar from './Sidebar';
-
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Navbar from './components/Sidebar';
 import Dashboard from './Dashboard';
-
-import VendorQuotes, { VendorQuote } from './VendorQuotes';
-
+import VendorQuotes from './VendorQuotes';
 import Budget from './pages/Budget';
+import Login from './pages/Login';
+import { AuthProvider } from './auth/AuthContext';
+import { RequireAuth } from './auth/RequireAuth';
 
-
-
-function MainLayout() {
-
-  const [quotes, setQuotes] = useState<VendorQuote[]>([]);
-
-  const location = useLocation();
-
-  const navigate = useNavigate();
-
-
-
-  const handleQuoteSubmitted = (quote: VendorQuote) => {
-
-    setQuotes((currentQuotes) => [quote, ...currentQuotes]);
-
-    navigate('/vendor-quotes');
-
-  };
-
-
-
-  const getActiveItem = () => {
-
-    if (location.pathname === '/vendor-quotes') return 'VendorQuotes';
-
-    if (location.pathname === '/budget') return 'Budget';
-
-    return 'Dashboard';
-
-  };
-
-
-
+function App() {
   return (
-
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f3f4f6'}}>
-
-      <Sidebar activeItem={getActiveItem()} />
-
-      <div style={{ flex: 1 }}>
-
-        <Routes>
-
-          <Route path="/" element={<Dashboard onQuoteSubmitted={handleQuoteSubmitted} />} />
-
-          <Route path="/vendor-quotes" element={<VendorQuotes quotes={quotes} />} />
-
-          <Route path="/budget" element={<Budget />} />
-
-        </Routes>
-
-      </div>
-
+    <div>
+      <BrowserRouter>
+        <AuthProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/VendorQuotes" element={<RequireAuth><VendorQuotes /></RequireAuth>} />
+            <Route path="/Budget" element={<RequireAuth><Budget /></RequireAuth>} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </div>
 
   );

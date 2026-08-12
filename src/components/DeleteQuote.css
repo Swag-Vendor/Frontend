@@ -1,0 +1,110 @@
+.delete-quote-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.delete-quote-modal {
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    padding: 20px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    font-family: monospace;
+}
+
+.delete-quote-header,
+.delete-quote-actions {
+    display: flex;
+    align-items: center;
+}
+
+.delete-quote-header {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.delete-quote-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.delete-quote-close {
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.delete-quote-warning {
+    margin: 0 0 16px;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.delete-quote-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.delete-quote-label select {
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.delete-quote-empty,
+.delete-quote-error {
+    margin: 12px 0 0;
+    font-size: 12px;
+}
+
+.delete-quote-empty { color: #6b7280; }
+.delete-quote-error { color: #b91c1c; }
+
+.delete-quote-actions {
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.delete-quote-actions button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.delete-quote-cancel {
+    border: 1px solid #d1d5db;
+    background: transparent;
+    color: #374151;
+}
+
+.delete-quote-confirm {
+    border: 1px solid #b91c1c;
+    background: #dc2626;
+    color: #fff;
+}
+
+.delete-quote-actions button:disabled,
+.delete-quote-close:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}

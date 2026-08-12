@@ -1,40 +1,51 @@
-const NAV_ITEMS = ['Dashboard', 'VendorQuotes', 'Budget']
+// @ts-ignore: allow CSS side-effect import without type declarations
 import './Sidebar.css'
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
-interface SidebarProps {
-  active: string
-  masterFundBalance: number | null
-}
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-function formatCurrency(value: number) {
-  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-}
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
-function Sidebar({ active, masterFundBalance }: SidebarProps) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">SwagLab</div>
-
-      <nav className="sidebar-nav">
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item}
-            href="#"
-            className={item === active ? 'sidebar-nav-item active' : 'sidebar-nav-item'}
-          >
-            {item}
-          </a>
-        ))}
+    <div>
+        <nav className="navbar">
+          <div className="navbar-links">
+            {user && (
+              <>
+                <Link to="/" className="navbar-link">
+                  Dashboard
+                </Link>
+                <Link to="/VendorQuotes" className="navbar-link">
+                  Vendor Quotes
+                </Link>
+                <Link to="/Budget" className="navbar-link">
+                  Budget
+                </Link>
+              </>
+            )}
+          </div>
+          <div className="navbar-auth">
+            {user ? (
+              <>
+                <span className="navbar-user">{user.role}</span>
+                <button type="button" className="navbar-logout" onClick={handleLogout}>
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="navbar-link">
+                Log In
+              </Link>
+            )}
+          </div>
       </nav>
 
-      <div className="sidebar-fund-badge">
-        <span className="sidebar-fund-label">Masterfund</span>
-        <span className="sidebar-fund-value">
-          {masterFundBalance === null ? '...' : formatCurrency(masterFundBalance)}
-        </span>
-      </div>
-    </aside>
-  )
+    </div>
+  );
 }
-
-export default Sidebar

@@ -23,7 +23,27 @@ function App() {
         </AuthProvider>
       </BrowserRouter>
     </div>
+
   );
+
 }
+
+
+
+function App() {
+
+  return (
+
+    <BrowserRouter>
+
+      <MainLayout />
+
+    </BrowserRouter>
+
+  );
+
+}
+
+
 
 export default App;

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 // @ts-ignore: allow CSS side-effect import without type declarations
 import './Budget.css'
-
-const API_BASE = 'http://localhost:3000'
+import { useAuth } from '../auth/AuthContext'
+import { authFetch } from '../auth/authFetch'
+import FundAdjustmentModal from '../components/FundAdjustmentModal'
+import { API_BASE } from '../config'
 
 interface Summary {
   fundTotal: number
@@ -50,20 +52,42 @@ function Budget() {
   const [categories, setCategories] = useState<CategorySpend[] | null>(null)
   const [ledger, setLedger] = useState<LedgerEntry[] | null>(null)
   const [error, setError] = useState(false)
+  const [showEditFund, setShowEditFund] = useState(false)
+  const [showLogExpense, setShowLogExpense] = useState(false)
+  const { user, token, logout } = useAuth()
+  const isDirector = user?.role === 'director'
 
-  useEffect(() => {
+  const loadData = () => {
+    if (!token) return
     Promise.all([
-      fetch(`${API_BASE}/master-fund/summary`).then((r) => r.json()),
-      fetch(`${API_BASE}/master-fund/categories`).then((r) => r.json()),
-      fetch(`${API_BASE}/master-fund/ledger`).then((r) => r.json()),
+      authFetch(`${API_BASE}/master-fund/summary`, token),
+      authFetch(`${API_BASE}/master-fund/categories`, token),
+      authFetch(`${API_BASE}/master-fund/ledger`, token),
     ])
-      .then(([s, c, l]) => {
+      .then(async ([summaryRes, categoriesRes, ledgerRes]) => {
+        if (summaryRes.status === 401 || categoriesRes.status === 401 || ledgerRes.status === 401) {
+          logout()
+          return
+        }
+        const [s, c, l] = await Promise.all([summaryRes.json(), categoriesRes.json(), ledgerRes.json()])
         setSummary(s)
         setCategories(c)
         setLedger(l)
+        setError(false)
       })
       .catch(() => setError(true))
-  }, [])
+  }
+
+  useEffect(() => {
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  const fundButtonTitle = !user
+    ? 'Requires login'
+    : !isDirector
+      ? 'Requires director role'
+      : undefined
 
   const maxCategoryAmount = categories?.length
     ? Math.max(...categories.map((c) => c.amount))
@@ -77,11 +101,22 @@ function Budget() {
           <p className="subtitle">Master fund overview and approved expense tracking</p>
         </div>
         <div className="header-actions">
-        {/* TODO: no login page created yet  */}
-          <button type="button" className="btn btn-outline" disabled title="Requires login (not built yet)">
+          <button
+            type="button"
+            className="btn btn-outline"
+            disabled={!isDirector}
+            title={fundButtonTitle}
+            onClick={() => setShowEditFund(true)}
+          >
             Edit Master Fund
           </button>
-          <button type="button" className="btn btn-primary" disabled title="Requires login (not built yet)">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!isDirector}
+            title={fundButtonTitle}
+            onClick={() => setShowLogExpense(true)}
+          >
             Log Expense
           </button>
         </div>
@@ -176,6 +211,38 @@ function Budget() {
             )}
           </table>
         </section>
+      )}
+
+      {showEditFund && token && (
+        <FundAdjustmentModal
+          mode="deposit"
+          token={token}
+          onClose={() => setShowEditFund(false)}
+          onSaved={() => {
+            setShowEditFund(false)
+            loadData()
+          }}
+          onUnauthorized={() => {
+            setShowEditFund(false)
+            logout()
+          }}
+        />
+      )}
+
+      {showLogExpense && token && (
+        <FundAdjustmentModal
+          mode="expense"
+          token={token}
+          onClose={() => setShowLogExpense(false)}
+          onSaved={() => {
+            setShowLogExpense(false)
+            loadData()
+          }}
+          onUnauthorized={() => {
+            setShowLogExpense(false)
+            logout()
+          }}
+        />
       )}
     </main>
   )

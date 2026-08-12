@@ -1,8 +1,9 @@
 import { FormEvent, useState } from 'react';
 // @ts-ignore: allow CSS side-effect import without type declarations
 import './NewQuote.css';
-
-const API_BASE = 'http://localhost:3000';
+import { API_BASE } from '../config';
+import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../auth/authFetch';
 
 interface NewQuoteProps {
     onClose: () => void;
@@ -17,14 +18,16 @@ const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
     const [itemDescription, setItemDescription] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const { token, logout } = useAuth();
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
+        if (!token) return;
         setSubmitting(true);
         setError('');
 
         try {
-            const itemRes = await fetch(`${API_BASE}/swag-items`, {
+            const itemRes = await authFetch(`${API_BASE}/swag-items`, token, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -33,10 +36,14 @@ const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
                     quantity: Number(itemQuantity),
                 }),
             });
+            if (itemRes.status === 401) {
+                logout();
+                return;
+            }
             if (!itemRes.ok) throw new Error('Failed to create item');
             const item = await itemRes.json();
 
-            const quoteRes = await fetch(`${API_BASE}/quotes`, {
+            const quoteRes = await authFetch(`${API_BASE}/quotes`, token, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -45,6 +52,10 @@ const NewQuote = ({ onClose, onSubmitted }: NewQuoteProps) => {
                     swagItemId: item.id,
                 }),
             });
+            if (quoteRes.status === 401) {
+                logout();
+                return;
+            }
             if (!quoteRes.ok) throw new Error('Failed to create quote');
 
             onSubmitted();

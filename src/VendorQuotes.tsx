@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-
-const API_BASE = 'http://localhost:3000';
+import { API_BASE } from './config';
+import { useAuth } from './auth/AuthContext';
+import { authFetch } from './auth/authFetch';
 
 export interface VendorQuote {
     id: string;
@@ -29,11 +30,17 @@ const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', cu
 const VendorQuotes = () => {
     const [quotes, setQuotes] = useState<VendorQuote[]>([]);
     const [error, setError] = useState(false);
+    const { token, logout } = useAuth();
 
     useEffect(() => {
-        fetch(`${API_BASE}/quotes`)
-            .then((r) => r.json())
-            .then((data: QuoteWithItem[]) => {
+        if (!token) return;
+        authFetch(`${API_BASE}/quotes`, token)
+            .then(async (res) => {
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+                const data: QuoteWithItem[] = await res.json();
                 setQuotes(data.map((quote) => ({
                     id: String(quote.id),
                     vendorName: quote.vendorName,
@@ -45,7 +52,8 @@ const VendorQuotes = () => {
                 })));
             })
             .catch(() => setError(true));
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
 
     return (
         <main style={{ flex: 1, padding: '24px', fontFamily: 'monospace' }}>

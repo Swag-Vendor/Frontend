@@ -28,22 +28,4 @@ function App() {
 
 }
 
-
-
-function App() {
-
-  return (
-
-    <BrowserRouter>
-
-      <MainLayout />
-
-    </BrowserRouter>
-
-  );
-
-}
-
-
-
 export default App;

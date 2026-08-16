@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react'
-// @ts-ignore: allow CSS side-effect import without type declarations
-import './Budget.css'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { authFetch } from '../auth/authFetch'
 import FundAdjustmentModal from '../components/FundAdjustmentModal'
@@ -28,12 +26,13 @@ interface LedgerEntry {
 }
 
 function formatPlain(value: number) {
-  return `$${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  const sign = value < 0 ? '-' : ''
+  return `${sign}$${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
 }
 
 function formatSigned(value: number) {
   const sign = value < 0 ? '-' : '+'
-  return `${sign}${formatPlain(value)}`
+  return `${sign}$${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
 }
 
 function formatDate(iso: string) {
@@ -41,10 +40,25 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
 }
 
-function amountClass(type: string) {
-  if (type === 'Deposit') return 'amount deposit'
-  if (type.includes('Pending')) return 'amount pending'
-  return 'amount expense'
+function amountColor(type: string) {
+  if (type === 'Deposit') return '#15803d'
+  if (type.includes('Pending')) return '#b45309'
+  return '#b91c1c'
+}
+
+const panelStyle: CSSProperties = {
+  backgroundColor: 'white',
+  border: '1px solid #e5e7eb',
+  borderRadius: '8px',
+  padding: '16px',
+  marginBottom: '16px',
+}
+
+const panelTitleStyle: CSSProperties = {
+  margin: '0 0 12px',
+  fontSize: '13px',
+  fontWeight: 'bold',
+  color: '#1e3a5f',
 }
 
 function Budget() {
@@ -94,123 +108,144 @@ function Budget() {
     : 1
 
   return (
-    <main className="budget-page">
-      <header className="budget-header">
+    <main style={{ flex: 1, padding: '24px', fontFamily: 'monospace' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
-          <h1>Budget</h1>
-          <p className="subtitle">Master fund overview and approved expense tracking</p>
+          <h1 style={{ margin: 0, fontSize: '22px' }}>Budget</h1>
+          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '13px' }}>Master fund overview and approved expense tracking</p>
         </div>
-        <div className="header-actions">
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button
             type="button"
-            className="btn btn-outline"
             disabled={!isDirector}
             title={fundButtonTitle}
             onClick={() => setShowEditFund(true)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: '1px solid #4A9EE8',
+              fontFamily: 'monospace',
+              fontWeight: 'bold',
+              cursor: isDirector ? 'pointer' : 'not-allowed',
+              backgroundColor: 'white',
+              color: '#4A9EE8',
+              opacity: isDirector ? 1 : 0.5,
+            }}
           >
             Edit Master Fund
           </button>
           <button
             type="button"
-            className="btn btn-primary"
             disabled={!isDirector}
             title={fundButtonTitle}
             onClick={() => setShowLogExpense(true)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              fontFamily: 'monospace',
+              fontWeight: 'bold',
+              cursor: isDirector ? 'pointer' : 'not-allowed',
+              backgroundColor: '#4A9EE8',
+              color: 'white',
+              opacity: isDirector ? 1 : 0.5,
+            }}
           >
             Log Expense
           </button>
         </div>
-      </header>
+      </div>
 
       {error && (
-        <div className="live-balance-note">
+        <p style={{ color: '#b91c1c', fontSize: '13px', marginBottom: '16px' }}>
           Could not reach backend — is it running on {API_BASE}?
+        </p>
+      )}
+
+      {!error && !summary && (
+        <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '16px' }}>Loading budget data…</p>
+      )}
+
+      {summary && (
+        <div style={{ padding: '16px', borderRadius: '8px', backgroundColor: '#FEFCE8', border: '2px solid #FDE68A', color: '#713f12', textAlign: 'center', marginBottom: '16px' }}>
+          <p style={{ margin: '0 0 4px', fontSize: '11px', letterSpacing: '0.1em', fontWeight: 'bold' }}>MASTER FUND REMAINING</p>
+          <p style={{ margin: '0 0 4px', fontSize: '36px', fontWeight: 'bold' }}>{formatPlain(summary.remaining)}</p>
+          <p style={{ margin: 0, fontSize: '12px', opacity: 0.75 }}>
+            {formatPlain(summary.fundTotal)} (fund) − {formatPlain(summary.approvedTotal)} (approved) − {formatPlain(summary.pendingTotal)} (pending) = {formatPlain(summary.remaining)}
+          </p>
         </div>
       )}
 
-      {!error && !summary && <div className="live-balance-note">Loading budget data…</div>}
-
       {summary && (
-        <section className="panel fund-remaining">
-          <span className="fund-remaining-label">MASTER FUND REMAINING</span>
-          <span className="fund-remaining-value">{formatPlain(summary.remaining)}</span>
-          <span className="fund-remaining-formula">
-            {formatPlain(summary.fundTotal)} (fund) − {formatPlain(summary.approvedTotal)} (approved) − {formatPlain(summary.pendingTotal)} (pending) = {formatPlain(summary.remaining)}
-          </span>
-        </section>
-      )}
-
-      {summary && (
-        <section className="panel">
-          <span className="panel-title">Fund Usage</span>
-          <div className="usage-bar-track">
-            <div className="usage-bar-fill" style={{ width: `${summary.usedPct}%` }} />
-            <span className="usage-bar-label">{summary.usedPct}% USED</span>
+        <div style={panelStyle}>
+          <p style={panelTitleStyle}>Fund Usage</p>
+          <div style={{ position: 'relative', height: '26px', width: '100%', backgroundColor: '#f9fafb', borderRadius: '999px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+            <div style={{ height: '100%', width: `${summary.usedPct}%`, backgroundColor: '#4A9EE8', borderRadius: '999px 0 0 999px' }} />
+            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#fff', mixBlendMode: 'difference' }}>
+              {summary.usedPct}% USED
+            </span>
           </div>
-          <p className="usage-caption">
+          <p style={{ fontSize: '13px', color: '#6b7280', margin: '12px 0 0' }}>
             {formatPlain(summary.approvedTotal)} approved / {formatPlain(summary.pendingTotal)} pending / {formatPlain(summary.remaining)} left of {formatPlain(summary.fundTotal)}
           </p>
-        </section>
+        </div>
       )}
 
       {categories && (
-        <section className="panel">
-          <span className="panel-title">Approved Spend by Category</span>
+        <div style={panelStyle}>
+          <p style={panelTitleStyle}>Approved Spend by Category</p>
           {categories.length === 0 ? (
-            <p className="usage-caption">No approved spend yet.</p>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>No approved spend yet.</p>
           ) : (
-            <div className="category-list">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {categories.map((cat) => (
-                <div className="category-row" key={cat.category}>
-                  <span className="category-label">{cat.category}</span>
-                  <div className="category-bar-track">
-                    <div
-                      className="category-bar-fill"
-                      style={{ width: `${(cat.amount / maxCategoryAmount) * 100}%` }}
-                    />
+                <div key={cat.category} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '13px' }}>{cat.category}</span>
+                  <div style={{ height: '10px', backgroundColor: '#f9fafb', borderRadius: '999px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                    <div style={{ height: '100%', width: `${(cat.amount / maxCategoryAmount) * 100}%`, backgroundColor: '#4A9EE8', borderRadius: '999px' }} />
                   </div>
-                  <span className="category-amount">${cat.amount.toLocaleString()}</span>
+                  <span style={{ fontSize: '13px', textAlign: 'right' }}>${cat.amount.toLocaleString()}</span>
                 </div>
               ))}
             </div>
           )}
-        </section>
+        </div>
       )}
 
       {ledger && (
-        <section className="panel">
-          <span className="panel-title">Fund Ledger</span>
-          <table className="ledger-table">
-            <thead>
+        <div style={{ ...panelStyle, overflowX: 'auto' }}>
+          <p style={panelTitleStyle}>Fund Ledger</p>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ backgroundColor: '#f9fafb' }}>
               <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Running Balance</th>
+                {['Date', 'Description', 'Type', 'Amount', 'Running Balance'].map((heading) => (
+                  <th key={heading} style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontSize: '12px' }}>{heading}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {ledger.map((row, i) => (
                 <tr key={i}>
-                  <td>{formatDate(row.date)}</td>
-                  <td>{row.description}</td>
-                  <td>{row.type}</td>
-                  <td className={amountClass(row.type)}>{formatSigned(row.amount)}</td>
-                  <td>${row.runningBalance.toLocaleString()}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>{formatDate(row.date)}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>{row.description}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>{row.type}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', color: amountColor(row.type) }}>{formatSigned(row.amount)}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>${row.runningBalance.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
             {summary && (
               <tfoot>
                 <tr>
-                  <td colSpan={4}>REMAINING BALANCE</td>
-                  <td>{formatPlain(summary.remaining)}</td>
+                  <td colSpan={3}></td>
+                  <td colSpan={2} style={{ padding: '12px', fontWeight: 'bold', backgroundColor: '#FEFCE8' }}>
+                    REMAINING: {formatPlain(summary.remaining)}
+                  </td>
                 </tr>
               </tfoot>
             )}
           </table>
-        </section>
+        </div>
       )}
 
       {showEditFund && token && (

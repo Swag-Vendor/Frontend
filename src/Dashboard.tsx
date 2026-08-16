@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeleteQuote from './components/DeleteQuote';
 import NewQuote from './components/NewQuote';
+import PendingRequests from './components/PendingRequests';
 import VendorQuotesPreview from './components/VendorQuotesPreview';
 import { API_BASE } from './config';
 import { useAuth } from './auth/AuthContext';
@@ -109,7 +110,9 @@ const Dashboard = () => {
             )}
 
             <VendorQuotesPreview />
-            
+
+            <PendingRequests onChanged={loadData} />
+
             {showNewQuote && (
                 <NewQuote
                     onClose={() => setShowNewQuote(false)}

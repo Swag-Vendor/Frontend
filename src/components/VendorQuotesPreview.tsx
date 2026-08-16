@@ -2,8 +2,9 @@
 import './VendorQuotesPreview.css';
 import { useEffect, useState } from 'react';
 import { VendorQuote } from '../VendorQuotes';
-
-const API_BASE = 'http://localhost:3000';
+import { API_BASE } from '../config';
+import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../auth/authFetch';
 
 interface QuoteWithItem {
     id: number;
@@ -22,9 +23,11 @@ const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', cu
 const VendorQuotesPreview = () => {
     const [quotes, setQuotes] = useState<VendorQuote[]>([]);
     const [error, setError] = useState(false);
+    const { token } = useAuth();
 
     useEffect(() => {
-        fetch(`${API_BASE}/quotes`)
+        if (!token) return;
+        authFetch(`${API_BASE}/quotes`, token)
             .then((r) => r.json())
             .then((data: QuoteWithItem[]) => {
                 setQuotes(data.slice(0, 5).map((quote) => ({
@@ -38,13 +41,14 @@ const VendorQuotesPreview = () => {
                 })));
             })
             .catch(() => setError(true));
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
 
     return (
         <div className="vqp-container">
             <div className="vqp-header">
                 <h2 className="vqp-title">Vendor Quotes</h2>
-                <a href="/vendor-quotes" className="vqp-view-all">View all →</a>
+                <a href="/VendorQuotes" className="vqp-view-all">View all →</a>
             </div>
             {error ? (
                 <p className="vqp-error">Could not load vendor quotes.</p>
